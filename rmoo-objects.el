@@ -312,6 +312,6 @@
 				       predicate))
 	   (mapcar 'mo-symname-to-objnum-here comp))
 	  ((eq 'lambda flag)
-	   (if ((intern-soft newstring (get world 'objects)))
+	   (if (intern-soft newstring (get world 'objects))
 	       t
 	     nil)))))
