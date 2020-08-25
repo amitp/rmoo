@@ -517,7 +517,7 @@ Keymap:
 
 (defun rmoo-request-tls-maybe (world)
   (or (get world 'tls)
-      (read-string "TLS/SSL? ")))
+      (when (yes-or-no-p "TLS/SSL? ") 'tls)))
 
 (defun rmoo-request-logfile-maybe (world)
   (or (get world 'logfile)
