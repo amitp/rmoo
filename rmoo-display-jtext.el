@@ -9,11 +9,12 @@
 (require 'rmoo)
 
 (defvar jtext-tag-actions '((title . ignore) ;; we don't do headers (yet)
-			    (string . insert-before-markers)
-			    (text . insert-before-markers)
+			    (string . jtext-insert-any)
+			    (text . jtext-insert-any)
 			    (header . jtext-insert-header)
 			    (hgroup . jtext-insert-hgroup)
 			    (paragraph . jtext-insert-paragraph)
+			    (preformatted . jtext-handle-preformat)
 			    (link . jtext-insert-link)
 			    )
   "List of jtext tags and functions to pass control to.")
@@ -30,7 +31,7 @@
       (list form)
     (cdr form)))
 
-(defun jtext-insert-vbox (form)
+(defun jtext-insert-vbox-no-newline (form)
   "Given a vbox, insert it.
 The vbox should be a string or a list, and can be obtained by passing
 jtext-tagged text to the read function."
@@ -38,7 +39,10 @@ jtext-tagged text to the read function."
     (if a
 	(apply (cdr a) (jtext-tag-values form))
       (message "Form not known")
-      (insert-before-markers (prin1-to-string form))))
+      (insert-before-markers (prin1-to-string form)))))
+
+(defun jtext-insert-vbox (form)
+  (jtext-insert-vbox-no-newline form)
   (insert-before-markers "\n"))
 
 (defvar jtext-header-actions '(jtext-header-action-1
@@ -104,6 +108,22 @@ jtext-tagged text to the read function."
 (defvar jtext-link-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\^cm" 'jtext-indicated-link)))
+
+
+(defvar-local jtext-preformatting nil "Are we inside a preformatted section?")
+(defun jtext-handle-preformat (&rest forms)
+  (let ((jtext-preformatting t))
+    (while forms
+      (if (cdr forms)
+	  (jtext-insert-vbox (car forms))
+        (jtext-insert-vbox-no-newline (car forms)))
+      (setq forms (cdr forms)))))
+
+(defun jtext-insert-any (&rest forms)
+  (let ((p (point)))
+    (apply 'insert-before-markers forms)
+    (unless jtext-preformatting
+      (add-text-properties p (point) '(face jtext-text)))))
 
 
 
