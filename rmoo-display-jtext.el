@@ -56,9 +56,9 @@ jtext-tagged text to the read function."
 			     jtext-header-5
 			     jtext-header-6))
 
-(mapcar 'make-face jtext-header-faces)
-(mapcar (lambda (face)
-	  (set-face-underline-p face t))
+(mapc 'make-face jtext-header-faces)
+(mapc (lambda (face)
+	  (set-face-underline face t))
 	jtext-header-faces)
 
 (defun jtext-header-action-1 (start end)
@@ -82,7 +82,7 @@ jtext-tagged text to the read function."
 
 (defun jtext-insert-header (level &rest forms)
   (let ((start (point)))
-    (mapcar 'jtext-insert-hbox forms)
+    (mapc 'jtext-insert-hbox forms)
     (funcall (nth (1- level) jtext-header-actions)
 	     start (point)))
   (insert-before-markers "\n"))
@@ -96,9 +96,9 @@ jtext-tagged text to the read function."
       (insert-before-markers (prin1-to-string form)))))
 
 (defun jtext-insert-paragraph (&rest forms)
-  (mapcar 'jtext-insert-hbox forms))
+  (mapc 'jtext-insert-hbox forms))
 (defun jtext-insert-hgroup (&rest forms)
-  (mapcar 'jtext-insert-hbox forms))
+  (mapc 'jtext-insert-hbox forms))
 
 
 (defvar jtext-link-map
@@ -113,14 +113,14 @@ jtext-tagged text to the read function."
     (let ((point (point)))
       (add-text-properties start point
 			   (list 'jtext-start start 'jtext-end point))
-      (add-text-properties start point '(face bold-italic))
+      (add-text-properties start point '(face link mouse-face highlight))
       (add-text-properties start point (list 'address address))
       (add-text-properties start point '(local-map jtext-link-map)))))
 
 
 
 (defun jtext-indicated-link (event)
-  (end-of-buffer)
+  (goto-char (point-max))
   (save-window-excursion
     (save-excursion
       (let* ((position (event-start event))
@@ -128,8 +128,7 @@ jtext-tagged text to the read function."
 	     (p (posn-point position))
 	     (jtext-address (get-text-property p 'address))
 	     (text (and jtext-address
-			(save-excursion
-			  (set-buffer buffer)
+			(with-current-buffer buffer
 			  (buffer-substring
 			   (get-text-property p 'jtext-start)
 			   (get-text-property p 'jtext-end)))))
@@ -140,7 +139,7 @@ jtext-tagged text to the read function."
 		   (to-send (concat "#$#jtext-pick address-type: "
 				    (symbol-name (car address))
 				    " args: \"")))
-	      (mapcar (function
+	      (mapc (function
 		       (lambda (pair)
 			 (let ((s (prin1-to-string
 				   (prin1-to-string
